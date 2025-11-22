@@ -1,7 +1,19 @@
 
+
+
 # Modern Portfolio Website
 
 A fully responsive, theme-switchable portfolio designed to highlight your work with style, motion, and clarity. Built for developers, designers, and creatives who want a fast, elegant, and customizable online presence.
+
+##
+
+<p align="center">
+  <a href="https://safak.vercel.app" target="_blank">
+    <img src="https://img.shields.io/badge/Live%20Website-Click%20Here-brightgreen?style=for-the-badge&logo=vercel" alt="Live Website">
+  </a>
+</p>
+
+##
 
 ## Screenshots <img width="24" height="24" alt="image" src="https://github.com/user-attachments/assets/405a35be-6b8d-492b-8b99-0b37a0e01f64" />
 
@@ -52,6 +64,43 @@ A fully responsive, theme-switchable portfolio designed to highlight your work w
 
 **Server:** Node, PNPM
 
+## Install Prerequisites 📦
+
+- For Arch based distros:
+```bash
+sudo pacman -Syu git nodejs npm --noconfirm
+```
+- For Debian based distros:
+```bash
+sudo apt update
+sudo apt install git nodejs npm -y
+```
+- For Fedora based distros:
+```bash
+sudo dnf install git nodejs npm -y
+```
+- For MacOS:
+  - Install Homebrew (if not already installed) 
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+```bash
+# If you are already have Homebrew
+brew install git node
+```
+- For Windows:
+  - Install Git and Node.js/NPM if not already installed
+  - Git: https://git-scm.com/downloads
+  - Node.js (includes npm): https://nodejs.org/en/download/
+
+
+## Cloning and Usage ⏬
+```bash
+git clone https://github.com/anlyetim/Modern-Portfolio.git
+cd Modern-Portfolio
+npm install
+npm run dev
+```
 ## Support ⭐
 
 Drop a star if you like it, kingo!
