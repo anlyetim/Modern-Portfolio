@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Moon, Sun, Linkedin, Instagram, Menu, X, Home, Mail, Grid2x2, LayoutGrid } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -28,12 +28,12 @@ const categories = [
   "Home",
   "The Bulb",
   "Lightsout",
+  "VFX",
   "Environment",
   "Prompt",
   "Product Design",
   "Character",
   "Game Design",
-  "VFX",
   "Abstract",
   "Gif",
 ]
@@ -51,6 +51,18 @@ const projects = {
       ],
       title: "We Are Ready – VFX Breakdown",
       description: "Behind-the-scenes VFX breakdown showcasing compositing, tracking, and visual effects pipeline from start to final render.",
+      orientation: "horizontal",
+    },
+    {
+      id: 11,
+      items: [
+        {
+          type: "video",
+          src: "/assets/environment/environment_vfx.mp4",
+        },
+      ],
+      title: "Environment VFX",
+      description: "Blender camera track and vfx work",
       orientation: "horizontal",
     },
   ],
@@ -187,18 +199,6 @@ const projects = {
       title: "Bard Forest",
       description:
         "Realistic Barn – Unreal Engine 5.1 | Used Quixel Megascan Presets | Color grade & edit: DaVinci Resolve | SoundFX: Soundly",
-      orientation: "horizontal",
-    },
-    {
-      id: 11,
-      items: [
-        {
-          type: "video",
-          src: "/assets/environment/environment_vfx.mp4",
-        },
-      ],
-      title: "Environment VFX",
-      description: "Blender camera track and vfx work",
       orientation: "horizontal",
     },
     {
@@ -704,11 +704,12 @@ const projects = {
   ],
 }
 
-function VideoPlayer({ src, title }: { src: string; title: string }) {
+function VideoPlayer({ src, title, onMouseEnter }: { src: string; title: string; onMouseEnter?: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(true)
 
-  const handleVideoClick = () => {
+  const handleVideoClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause()
@@ -729,18 +730,103 @@ function VideoPlayer({ src, title }: { src: string; title: string }) {
       muted
       playsInline
       onClick={handleVideoClick}
+      onMouseEnter={onMouseEnter}
       aria-label={`${title} - Click to ${isPlaying ? "pause" : "play"}`}
     />
   )
 }
 
-function TiledPreview({ items }: { items: Array<{ type: string; src: string }> }) {
+function HoverOverlay({ project, item, itemIndex, onClose }: {
+  project: any;
+  item: { type: string; src: string };
+  itemIndex?: number;
+  onClose: () => void;
+}) {
+  const imageContainerRef = useRef<HTMLDivElement>(null)
+  const DEADZONE = 60
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!imageContainerRef.current) return
+    const rect = imageContainerRef.current.getBoundingClientRect()
+    const isOutside =
+      e.clientX < rect.left - DEADZONE ||
+      e.clientX > rect.right + DEADZONE ||
+      e.clientY < rect.top - DEADZONE ||
+      e.clientY > rect.bottom + DEADZONE
+    if (isOutside) {
+      onClose()
+    }
+  }, [onClose])
+
+  const desc = itemIndex !== undefined
+    ? (project.itemDescriptions?.[itemIndex] || project.description)
+    : project.description
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-zoom-out"
+      onMouseMove={handleMouseMove}
+      onClick={onClose}
+    >
+      <div className="relative w-[90vw] h-[85vh] flex flex-col items-center justify-center">
+        <div ref={imageContainerRef} className="relative max-w-full max-h-[75vh] rounded-lg overflow-hidden shadow-2xl">
+          {item.type === "video" ? (
+            <VideoPlayer src={item.src} title={project.title} />
+          ) : (
+            <img
+              src={item.src}
+              alt={project.title}
+              className="max-w-full max-h-[75vh] object-contain"
+            />
+          )}
+        </div>
+        <div className="mt-4 text-center max-w-2xl">
+          <h3 className="text-lg font-medium text-white mb-1">
+            {project.title}{itemIndex !== undefined ? ` ${itemIndex + 1}` : ""}
+          </h3>
+          {desc && (
+            <p className="text-sm text-white/70 leading-relaxed">{desc}</p>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+
+function HoverProgressRing() {
+  return (
+    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none bg-black/40 backdrop-blur-[2px] rounded-lg">
+      <svg width="52" height="52" viewBox="0 0 52 52" className="drop-shadow-lg mb-2">
+        <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+        <circle
+          cx="26" cy="26" r="22"
+          fill="none"
+          stroke="white"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeDasharray="138.23"
+          strokeDashoffset="138.23"
+          transform="rotate(-90 26 26)"
+          className="hover-ring-fill"
+        />
+      </svg>
+      <span className="text-[11px] font-medium text-white/80 tracking-wide uppercase">Hold to fullscreen</span>
+    </div>
+  )
+}
+
+function TiledPreview({ items, onItemHover }: { items: Array<{ type: string; src: string }>; onItemHover?: (item: { type: string; src: string }, index: number) => void }) {
   if (items.length === 1) {
     const item = items[0]
     if (item?.type === "video") {
-      return <VideoPlayer src={item.src} title="Preview" />
+      return <VideoPlayer src={item.src} title="Preview" onMouseEnter={() => onItemHover?.(item, 0)} />
     }
-    return <img src={item?.src || "/placeholder.svg"} alt="Preview" className="w-full h-full object-cover" />
+    return <img src={item?.src || "/placeholder.svg"} alt="Preview" className="w-full h-full object-cover" onMouseEnter={() => onItemHover?.(item!, 0)} />
   }
 
   if (items.length === 2) {
@@ -749,7 +835,7 @@ function TiledPreview({ items }: { items: Array<{ type: string; src: string }> }
         {items.map((item, idx) =>
           item.type === "video" ? (
             <div key={idx} className="w-full h-full">
-              <VideoPlayer src={item.src} title={`Preview ${idx + 1}`} />
+              <VideoPlayer src={item.src} title={`Preview ${idx + 1}`} onMouseEnter={() => onItemHover?.(item, idx)} />
             </div>
           ) : (
             <img
@@ -757,6 +843,7 @@ function TiledPreview({ items }: { items: Array<{ type: string; src: string }> }
               src={item.src || "/placeholder.svg"}
               alt={`Preview ${idx + 1}`}
               className="w-full h-full object-cover"
+              onMouseEnter={() => onItemHover?.(item, idx)}
             />
           ),
         )}
@@ -771,7 +858,7 @@ function TiledPreview({ items }: { items: Array<{ type: string; src: string }> }
           {items.slice(0, 2).map((item, idx) =>
             item.type === "video" ? (
               <div key={idx} className="w-full h-full">
-                <VideoPlayer src={item.src} title={`Preview ${idx + 1}`} />
+                <VideoPlayer src={item.src} title={`Preview ${idx + 1}`} onMouseEnter={() => onItemHover?.(item, idx)} />
               </div>
             ) : (
               <img
@@ -779,16 +866,17 @@ function TiledPreview({ items }: { items: Array<{ type: string; src: string }> }
                 src={item.src || "/placeholder.svg"}
                 alt={`Preview ${idx + 1}`}
                 className="w-full h-full object-cover"
+                onMouseEnter={() => onItemHover?.(item, idx)}
               />
             ),
           )}
         </div>
         {items[2]?.type === "video" ? (
           <div className="w-full h-full">
-            <VideoPlayer src={items[2].src} title="Preview 3" />
+            <VideoPlayer src={items[2].src} title="Preview 3" onMouseEnter={() => onItemHover?.(items[2]!, 2)} />
           </div>
         ) : (
-          <img src={items[2]?.src || "/placeholder.svg"} alt="Preview 3" className="w-full h-full object-cover" />
+          <img src={items[2]?.src || "/placeholder.svg"} alt="Preview 3" className="w-full h-full object-cover" onMouseEnter={() => onItemHover?.(items[2]!, 2)} />
         )}
       </div>
     )
@@ -800,14 +888,15 @@ function TiledPreview({ items }: { items: Array<{ type: string; src: string }> }
       {items.slice(0, 4).map((item, idx) => {
         return item.type === "video" ? (
           <div key={idx} className="w-full h-full">
-            <VideoPlayer src={item.src} title={`Preview ${idx + 1}`} />
+            <VideoPlayer src={item.src} title={`Preview ${idx + 1}`} onMouseEnter={() => onItemHover?.(item, idx)} />
           </div>
         ) : (
           <img
             key={idx}
             src={item.src || "/placeholder.svg"}
             alt={`Preview ${idx + 1}`}
-            className="w-full h-full object-cover" />
+            className="w-full h-full object-cover"
+            onMouseEnter={() => onItemHover?.(item, idx)} />
         )
       },
       )}
@@ -823,6 +912,26 @@ export default function PortfolioPage() {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [gridColumns, setGridColumns] = useState(2)
+  const [hoveredProject, setHoveredProject] = useState<{ project: any; item: { type: string; src: string }; itemIndex?: number } | null>(null)
+  const [preHoverProjectId, setPreHoverProjectId] = useState<string | null>(null)
+  const hoverTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  const startHover = useCallback((projectId: string, project: any, item: { type: string; src: string }, itemIndex?: number) => {
+    cancelHover()
+    setPreHoverProjectId(projectId)
+    hoverTimerRef.current = setTimeout(() => {
+      setHoveredProject({ project, item, itemIndex })
+      setPreHoverProjectId(null)
+    }, 750)
+  }, [])
+
+  const cancelHover = useCallback(() => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = null
+    }
+    setPreHoverProjectId(null)
+  }, [])
 
   const allProjects = projects[selectedCategory as keyof typeof projects] || []
 
@@ -975,9 +1084,9 @@ export default function PortfolioPage() {
                           {selectedCategory === category ? "◉ " : "○ "}
                         </span>
                         <span className={`text-sm ml-3 ${selectedCategory === category ? "font-medium" : ""}`}>
-                          {category}
+                          <span className="block">{category}</span>
                           {(category === "The Bulb" || category === "Lightsout") && (
-                            <span className="text-[10px] ml-1.5 opacity-50 font-normal">Animation Film</span>
+                            <span className="block text-[10px] opacity-50 font-normal -mt-0.5">Animation Film</span>
                           )}
                         </span>
                       </motion.div>
@@ -1172,7 +1281,7 @@ export default function PortfolioPage() {
                 <h4 className="text-xl lg:text-1xl font-medium mt-6 text-center">Biography</h4>
                 <br /><br />
                 <h6 className="text-center leading-relaxed text-muted-foreground max-w-3xl mx-auto">
-                  22 years old | Student at Üsküdar University, Cartoon and Animation<br /><br />
+                  23 years old | Graduate of Üsküdar University, Cartoon and Animation<br /><br />
                   Skilled in <strong>3D</strong> and <strong>2D art</strong>, with experience as a drone operator, cameraman, and graphic designer.<br /><br />
                   Member of the <strong>"ineq"</strong> team, where I contribute as a <strong>3D artist</strong>, <strong>level designer</strong>, and <strong>SFX artist</strong> in game development projects.<br /><br />
                   Always eager to learn and explore new techniques and technologies in art, animation, and game development.
@@ -1240,9 +1349,12 @@ export default function PortfolioPage() {
                           className="group"
                         >
                           <div
-                            className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border cursor-pointer`}
+                            className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border cursor-pointer ${preHoverProjectId === `${project.id}-${itemIndex}` ? "pre-hover-active" : ""}`}
                             onClick={() => handleProjectClick(project.id, hasMultipleItems)}
+                            onMouseEnter={() => startHover(`${project.id}-${itemIndex}`, project, item, itemIndex)}
+                            onMouseLeave={cancelHover}
                           >
+                            {preHoverProjectId === `${project.id}-${itemIndex}` && <HoverProgressRing />}
                             {item.type === "video" ? (
                               <VideoPlayer src={item.src} title={`${project.title} ${itemIndex + 1}`} />
                             ) : (
@@ -1270,11 +1382,14 @@ export default function PortfolioPage() {
                         className="group"
                       >
                         <div
-                          className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border ${hasMultipleItems ? "cursor-pointer" : ""
-                            }`}
+                          className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border ${hasMultipleItems ? "cursor-pointer" : ""} ${!hasMultipleItems && preHoverProjectId === `${project.id}` ? "pre-hover-active" : ""}
+                            `}
                           onClick={() => handleProjectClick(project.id, hasMultipleItems)}
+                          onMouseEnter={!hasMultipleItems ? () => startHover(`${project.id}`, project, project.items[0]) : undefined}
+                          onMouseLeave={!hasMultipleItems ? cancelHover : undefined}
                         >
                           <TiledPreview items={project.items} />
+                          {!hasMultipleItems && preHoverProjectId === `${project.id}` && <HoverProgressRing />}
                         </div>
                         <h3 className="text-base lg:text-lg font-medium mb-2">
                           {project.title}
@@ -1349,9 +1464,12 @@ export default function PortfolioPage() {
                           className="group"
                         >
                           <div
-                            className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border cursor-pointer`}
+                            className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border cursor-pointer ${preHoverProjectId === `${project.id}-${itemIndex}` ? "pre-hover-active" : ""}`}
                             onClick={() => handleProjectClick(project.id, hasMultipleItems)}
+                            onMouseEnter={() => startHover(`${project.id}-${itemIndex}`, project, item, itemIndex)}
+                            onMouseLeave={cancelHover}
                           >
+                            {preHoverProjectId === `${project.id}-${itemIndex}` && <HoverProgressRing />}
                             {item.type === "video" ? (
                               <VideoPlayer src={item.src} title={`${project.title} ${itemIndex + 1}`} />
                             ) : (
@@ -1379,11 +1497,14 @@ export default function PortfolioPage() {
                         className="group"
                       >
                         <div
-                          className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border ${hasMultipleItems ? "cursor-pointer" : ""
-                            }`}
+                          className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border ${hasMultipleItems ? "cursor-pointer" : ""} ${!hasMultipleItems && preHoverProjectId === `${project.id}` ? "pre-hover-active" : ""}
+                            `}
                           onClick={() => handleProjectClick(project.id, hasMultipleItems)}
+                          onMouseEnter={!hasMultipleItems ? () => startHover(`${project.id}`, project, project.items[0]) : undefined}
+                          onMouseLeave={!hasMultipleItems ? cancelHover : undefined}
                         >
                           <TiledPreview items={project.items} />
+                          {!hasMultipleItems && preHoverProjectId === `${project.id}` && <HoverProgressRing />}
                         </div>
                         <h3 className="text-base lg:text-lg font-medium mb-2">
                           {project.title}
@@ -1459,9 +1580,12 @@ export default function PortfolioPage() {
                           className="group"
                         >
                           <div
-                            className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border cursor-pointer`}
+                            className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border cursor-pointer ${preHoverProjectId === `${project.id}-${itemIndex}` ? "pre-hover-active" : ""}`}
                             onClick={() => handleProjectClick(project.id, hasMultipleItems)}
+                            onMouseEnter={() => startHover(`${project.id}-${itemIndex}`, project, item, itemIndex)}
+                            onMouseLeave={cancelHover}
                           >
+                            {preHoverProjectId === `${project.id}-${itemIndex}` && <HoverProgressRing />}
                             {item.type === "video" ? (
                               <VideoPlayer src={item.src} title={`${project.title} ${itemIndex + 1}`} />
                             ) : (
@@ -1489,11 +1613,14 @@ export default function PortfolioPage() {
                         className="group"
                       >
                         <div
-                          className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border ${hasMultipleItems ? "cursor-pointer" : ""
-                            }`}
+                          className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border ${hasMultipleItems ? "cursor-pointer" : ""} ${!hasMultipleItems && preHoverProjectId === `${project.id}` ? "pre-hover-active" : ""}
+                            `}
                           onClick={() => handleProjectClick(project.id, hasMultipleItems)}
+                          onMouseEnter={!hasMultipleItems ? () => startHover(`${project.id}`, project, project.items[0]) : undefined}
+                          onMouseLeave={!hasMultipleItems ? cancelHover : undefined}
                         >
                           <TiledPreview items={project.items} />
+                          {!hasMultipleItems && preHoverProjectId === `${project.id}` && <HoverProgressRing />}
                         </div>
                         <h3 className="text-base lg:text-lg font-medium mb-2">
                           {project.title}
@@ -1556,9 +1683,12 @@ export default function PortfolioPage() {
                             className="group"
                           >
                             <div
-                              className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border cursor-pointer`}
+                              className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border cursor-pointer ${preHoverProjectId === `${project.id}-${itemIndex}` ? "pre-hover-active" : ""}`}
                               onClick={() => handleProjectClick(project.id, hasMultipleItems)}
+                              onMouseEnter={() => startHover(`${project.id}-${itemIndex}`, project, item, itemIndex)}
+                              onMouseLeave={cancelHover}
                             >
+                              {preHoverProjectId === `${project.id}-${itemIndex}` && <HoverProgressRing />}
                               {item.type === "video" ? (
                                 <VideoPlayer src={item.src} title={`${project.title} ${itemIndex + 1}`} />
                               ) : (
@@ -1586,11 +1716,14 @@ export default function PortfolioPage() {
                           className="group"
                         >
                           <div
-                            className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border ${hasMultipleItems ? "cursor-pointer" : ""
-                              }`}
+                            className={`relative ${aspectRatio} rounded-lg overflow-hidden bg-muted mb-4 border border-border ${hasMultipleItems ? "cursor-pointer" : ""} ${!hasMultipleItems && preHoverProjectId === `${project.id}` ? "pre-hover-active" : ""}
+                              `}
                             onClick={() => handleProjectClick(project.id, hasMultipleItems)}
+                            onMouseEnter={!hasMultipleItems ? () => startHover(`${project.id}`, project, project.items[0]) : undefined}
+                            onMouseLeave={!hasMultipleItems ? cancelHover : undefined}
                           >
                             <TiledPreview items={project.items} />
+                            {!hasMultipleItems && preHoverProjectId === `${project.id}` && <HoverProgressRing />}
                           </div>
                           <h3 className="text-base lg:text-lg font-medium mb-2">
                             {project.title}
@@ -1606,6 +1739,18 @@ export default function PortfolioPage() {
                 </motion.div>
               </AnimatePresence>
             )}
+
+            {/* Hover Zoom Overlay */}
+            <AnimatePresence>
+              {hoveredProject && selectedCategory !== "Home" && (
+                <HoverOverlay
+                  project={hoveredProject.project}
+                  item={hoveredProject.item}
+                  itemIndex={hoveredProject.itemIndex}
+                  onClose={() => setHoveredProject(null)}
+                />
+              )}
+            </AnimatePresence>
           </main>
         </div>
       </div>

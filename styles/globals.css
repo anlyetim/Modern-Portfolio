@@ -131,7 +131,38 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+.pre-hover-active {
+  transform: scale(1.03);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.4), 0 0 20px rgba(255, 255, 255, 0.1);
+  z-index: 10;
+  position: relative;
+}
+
+.dark .pre-hover-active {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3), 0 0 20px rgba(255, 255, 255, 0.08);
+}
+
+:root .pre-hover-active {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.hover-ring-fill {
+  animation: ring-fill 750ms linear forwards;
+}
+
+@keyframes ring-fill {
+  from {
+    stroke-dashoffset: 138.23;
+  }
+
+  to {
+    stroke-dashoffset: 0;
   }
 }
