@@ -40,11 +40,11 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: #000000;
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
+  --card: #000000;
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
+  --popover: #000000;
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.985 0 0);
   --primary-foreground: oklch(0.205 0 0);
@@ -120,11 +120,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
-  /* Add gradient background for dark mode - left black to right near-white, starting transition more to the right */
+
+  /* AMOLED pure black background for dark mode */
   .dark body {
-    background: linear-gradient(to right, #000000 0%, #000000 50%, #1a1a1a 65%, #404040 80%, #e8e8e8 100%);
+    background: #000000;
   }
 }
