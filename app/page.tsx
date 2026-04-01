@@ -1196,10 +1196,14 @@ export default function PortfolioPage() {
           <main className="flex-1 p-6 lg:p-12">
             {/* Header */}
             <div className="flex justify-center mb-8 lg:mb-12">
-              <img
-                src="/assets/TEXT.png"
-                alt="MUSTAFA ŞAFAK DÜVENCİ"
-                className={`h-8 lg:h-12 object-contain ${isDarkMode ? "invert" : ""}`}
+              <video
+                src="/assets/text_anim_trans.webm"
+                className={`h-16 lg:h-24 object-contain ${!isDarkMode ? "invert" : ""}`}
+                autoPlay
+                loop
+                muted
+                playsInline
+                aria-label="MUSTAFA ŞAFAK DÜVENCİ"
               />
             </div>
 
