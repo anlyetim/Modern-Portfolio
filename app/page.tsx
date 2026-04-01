@@ -42,6 +42,18 @@ const projects = {
   Home: [],
   VFX: [
     {
+      id: 46,
+      items: [
+        {
+          type: "video",
+          src: "/assets/vfx/hangar_vfx_deneme_blender0001-0060.mp4",
+        },
+      ],
+      title: "Hangar VFX",
+      description: "Hangar environment and tracking attempt in Blender.",
+      orientation: "horizontal",
+    },
+    {
       id: 45,
       items: [
         {
@@ -67,6 +79,18 @@ const projects = {
     },
   ],
   Abstract: [
+    {
+      id: 47,
+      items: [
+        {
+          type: "video",
+          src: "/assets/abstract/concfruite_low2.mp4",
+        },
+      ],
+      title: "Concrete Fruit",
+      description: "Abstract flow and simulation loop.",
+      orientation: "vertical",
+    },
     {
       id: 1,
       items: [
@@ -413,6 +437,18 @@ const projects = {
   ],
   "Product Design": [
     {
+      id: 48,
+      items: [
+        {
+          type: "video",
+          src: "/assets/product/carweirdoshoodie2.mp4",
+        },
+      ],
+      title: "Car Weirdos Hoodie",
+      description: "3D product animation for Car Weirdos hoodie apparel.",
+      orientation: "vertical",
+    },
+    {
       id: 27,
       items: [
         {
@@ -720,11 +756,13 @@ function VideoPlayer({ src, title, onMouseEnter }: { src: string; title: string;
     }
   }
 
+  const isCarWeirdos = src.includes("carweirdoshoodie2")
+
   return (
     <video
       ref={videoRef}
       src={src}
-      className="w-full h-full object-cover cursor-pointer"
+      className={`w-full h-full object-cover cursor-pointer ${isCarWeirdos ? "object-[center_75%]" : ""}`}
       autoPlay
       loop
       muted
@@ -1010,7 +1048,7 @@ export default function PortfolioPage() {
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-border">
                   <img
-                    src="/assets/pp.jpg"
+                    src="/assets/wusdo_logo_pp.png"
                     alt="Şafak Düvenci"
                     className="w-full h-full object-cover"
                   />
