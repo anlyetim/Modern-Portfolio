@@ -1195,7 +1195,13 @@ export default function PortfolioPage() {
           {/* Main Content */}
           <main className="flex-1 p-6 lg:p-12">
             {/* Header */}
-            <h1 className="text-2xl lg:text-3xl font-bold text-center mb-8 lg:mb-12 uppercase tracking-wide font-noka-bold">MUSTAFA ŞAFAK DÜVENCİ</h1>
+            <div className="flex justify-center mb-8 lg:mb-12">
+              <img
+                src="/assets/TEXT.png"
+                alt="MUSTAFA ŞAFAK DÜVENCİ"
+                className={`h-8 lg:h-12 object-contain ${isDarkMode ? "invert" : ""}`}
+              />
+            </div>
 
             {selectedCategory === "Home" ? (
               <motion.div
